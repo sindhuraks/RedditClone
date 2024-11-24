@@ -1,0 +1,163 @@
+syntax  = "proto3";
+package messages;
+option go_package = "/message";
+import "google/protobuf/timestamp.proto";
+
+message Connect {
+    string Sender = 1;
+    string Message = 2;
+}
+
+message Connected {
+    string Message = 1;
+}
+
+message User {
+    string Username = 1;
+    string Password = 2;
+    int32 Karma = 3;
+    repeated string SubscribedSubreddits = 4;
+}
+
+message RegisterAccountRequest {
+    string Username = 1;
+    string Password = 2;
+}
+
+message RegisterAccountResponse {
+    string Message = 1;
+}
+
+message Subreddit {
+    string TopicName = 1;
+    string Description = 2;
+    string Creator = 3;
+    repeated string Moderators = 4;
+    repeated string Subscribers = 5;
+    repeated string PostIds = 6; 
+}
+
+message CreateSubredditRequest {
+    string Name = 1;
+    string Description = 2;
+    string Username = 3;
+}
+
+message CreateSubredditResponse {
+    string Message = 1;
+    Subreddit Subreddit = 2;
+}
+
+message JoinSubredditRequest {
+    string Username = 1;
+    string SubredditName = 2;
+}
+
+message JoinSubredditResponse {
+    string Message = 1;
+}
+
+message LeaveSubredditRequest {
+    string Username = 1;
+    string SubredditName = 2;
+}
+
+message LeaveSubredditResponse {
+    string Message = 1;
+}
+
+message Post {
+    string Subreddit = 1;
+    string Author = 2;
+    int32 Upvotecnt = 3;
+    int32 Downvotecnt = 4;
+    string Subject = 5;
+    string Content = 6;
+    google.protobuf.Timestamp CreatedAt = 7;
+    repeated string Comments = 8;
+    string PostId = 9;
+}
+
+message CreatePostRequest {
+    string SubredditName = 1;
+    string Author = 2;
+    string Subject = 3;
+    string Content = 4;
+}
+
+message CreatePostResponse {
+    string Message = 1;
+    Post Post = 2;
+}
+
+message Comment {
+    string Subreddit = 1;
+    string Author = 2;
+    int32 Upvotecnt = 3;
+    int32 Downvotecnt = 4;
+    string PostId = 5;
+    string Comment = 6;
+    google.protobuf.Timestamp CommentedAt = 7;
+    string Parent = 8;
+    repeated string Children = 9;
+    string CommentId = 10;
+}
+
+message CreateCommentRequest {
+    string Post = 1;
+    string Author = 2;
+    string Comment = 3;
+    string ParentComment = 4;
+    string ChildComment = 5;
+}
+
+message CreateCommentResponse {
+    string Message = 1;
+}
+
+message ComputeKarmaRequest {
+    string Id = 1;
+    bool IsUpvote = 2;
+}
+
+message ComputeKarmaResponse {
+    string User = 1;
+    string Message = 2;
+    int32 Karma = 3;
+}
+
+message GetPostFeedRequest {
+    string Username = 1;
+    int32 Limit = 2;
+}
+
+message GetPostFeedResponse {
+    repeated Post Posts = 1;
+}
+
+message DirectMessage {
+    string ID = 1;
+    string SenderUsername = 2;
+    string ReceiverUsername = 3;
+    string Content = 4;
+    google.protobuf.Timestamp Timestamp = 5;
+}
+
+message GetDirectMessagesRequest {
+    string Username = 1;
+}
+
+message GetDirectMessagesResponse {
+    repeated DirectMessage Messages = 1;
+}
+
+message SendDirectMessageRequest {
+    string SenderUsername = 1;
+    string ReceiverUsername = 2;
+    string Content = 3;
+}
+
+message SendDirectMessageResponse {
+    string Message = 1;
+    DirectMessage SentMessage = 2;
+}

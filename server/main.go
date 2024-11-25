@@ -43,7 +43,7 @@ func (s *RedditEngine)  Receive(context actor.Context) {
 		response := s.registerAccount(msg.Username, msg.Password)
 		context.Respond(response)
 	case *message.CreateSubredditRequest:
-		fmt.Printf("Create subbreddit request received from client with topic %v , description %v and username %v \n", msg.Name,msg.Description, msg.Username)
+		fmt.Printf("Create subbreddit request received from client with topic %v , description %v by user %v \n", msg.Name,msg.Description, msg.Username)
 		response := s.createSubreddit(msg.Name, msg.Description, msg.Username)
 		context.Respond(response)
 	case *message.JoinSubredditRequest:
@@ -71,9 +71,11 @@ func (s *RedditEngine)  Receive(context actor.Context) {
 		response := s.getPostFeed(msg.Username,msg.Limit)
 		context.Respond(response)
 	case *message.GetDirectMessagesRequest:
+        fmt.Printf("Get Direct messages request received from client for usernames %v \n", msg.Username)
         response := s.getDirectMessages(msg)
         context.Respond(response)
     case *message.SendDirectMessageRequest:
+        fmt.Printf("Get Send Direct messages request received from client to send a message from %v to %v with message %v \n", msg.SenderUsername, msg.ReceiverUsername, msg.Content)
         response := s.sendDirectMessage(msg)
         context.Respond(response)
 	}
@@ -120,7 +122,6 @@ func (s *RedditEngine) createSubreddit(name string, description string, username
         TopicName:  name,
         Description: description,
         Creator:     username,
-        Moderators:  []string{},
         Subscribers: []string{},
     }
     s.subreddits[name] = newSubreddit
@@ -151,6 +152,8 @@ func (s *RedditEngine) joinSubreddit(username string, subredditName string) *mes
     }
     user.SubscribedSubreddits = append(user.SubscribedSubreddits, subredditName)
     subreddit.Subscribers = append(subreddit.Subscribers, username)
+    s.users[username] = user
+
     return &message.JoinSubredditResponse{
         Message: "Successfully joined subreddit",
     }
@@ -221,8 +224,9 @@ func (s *RedditEngine) createSubredditPost(author string, subredditName string, 
 				PostId: postId,
 			}
 			s.posts[postId] = newPost
+            s.subreddits[subredditName].PostIds = append(s.subreddits[subredditName].PostIds, postId)
 			return &message.CreatePostResponse{
-				Message: "Subreddit created successfully",
+				Message: "Post created successfully",
 				Post:  newPost,
 			}
 		}
@@ -309,10 +313,16 @@ func (s *RedditEngine) computeKarma(id string, voteFlag bool) *message.ComputeKa
 }
 
 func (s *RedditEngine) getPostFeed(username string, limit int32) *message.GetPostFeedResponse {
-	user := s.users[username]
+	user, exists := s.users[username]
+    if !exists {
+        return &message.GetPostFeedResponse{Posts: []*message.Post{}}
+    }
     var allPosts []*message.Post
     for _, subredditName := range user.SubscribedSubreddits {
-        subreddit := s.subreddits[subredditName]
+        subreddit, exists := s.subreddits[subredditName]
+        if !exists {
+            continue
+        }
         for _, postID := range subreddit.PostIds {
             if post, exists := s.posts[postID]; exists {
                 allPosts = append(allPosts, post)
@@ -354,11 +364,12 @@ func (s *RedditEngine) sendDirectMessage(msg *message.SendDirectMessageRequest) 
 
 func main() {
 	system := actor.NewActorSystem()
-	config := remote.Configure("127.0.0.1", 8111)
+	config := remote.Configure("127.0.0.1", 8147)
 	remoter := remote.NewRemote(system, config)
 	remoter.Start()
 
 	props := actor.PropsFromProducer(func() actor.Actor { return NewServer() })
-	_, _ = system.Root.SpawnNamed(props, "chatserver")
+	_, _ = system.Root.SpawnNamed(props, "redditclone")
+
 	select{}
 }

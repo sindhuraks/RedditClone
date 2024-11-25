@@ -32,9 +32,8 @@ message Subreddit {
     string TopicName = 1;
     string Description = 2;
     string Creator = 3;
-    repeated string Moderators = 4;
-    repeated string Subscribers = 5;
-    repeated string PostIds = 6; 
+    repeated string Subscribers = 4;
+    repeated string PostIds = 5; 
 }
 
 message CreateSubredditRequest {

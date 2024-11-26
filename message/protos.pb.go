@@ -1636,6 +1636,96 @@ func (x *SendDirectMessageResponse) GetSentMessage() *DirectMessage {
 	return nil
 }
 
+type Shutdown struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Message string `protobuf:"bytes,1,opt,name=Message,proto3" json:"Message,omitempty"`
+}
+
+func (x *Shutdown) Reset() {
+	*x = Shutdown{}
+	mi := &file_messages_protos_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Shutdown) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Shutdown) ProtoMessage() {}
+
+func (x *Shutdown) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_protos_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Shutdown.ProtoReflect.Descriptor instead.
+func (*Shutdown) Descriptor() ([]byte, []int) {
+	return file_messages_protos_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *Shutdown) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type ShutdownResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Message string `protobuf:"bytes,1,opt,name=Message,proto3" json:"Message,omitempty"`
+}
+
+func (x *ShutdownResponse) Reset() {
+	*x = ShutdownResponse{}
+	mi := &file_messages_protos_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ShutdownResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ShutdownResponse) ProtoMessage() {}
+
+func (x *ShutdownResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_messages_protos_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ShutdownResponse.ProtoReflect.Descriptor instead.
+func (*ShutdownResponse) Descriptor() ([]byte, []int) {
+	return file_messages_protos_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *ShutdownResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 var File_messages_protos_proto protoreflect.FileDescriptor
 
 var file_messages_protos_proto_rawDesc = []byte{
@@ -1828,9 +1918,14 @@ var file_messages_protos_proto_rawDesc = []byte{
 	0x61, 0x67, 0x65, 0x12, 0x39, 0x0a, 0x0b, 0x53, 0x65, 0x6e, 0x74, 0x4d, 0x65, 0x73, 0x73, 0x61,
 	0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x6d, 0x65, 0x73, 0x73, 0x61,
 	0x67, 0x65, 0x73, 0x2e, 0x44, 0x69, 0x72, 0x65, 0x63, 0x74, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67,
-	0x65, 0x52, 0x0b, 0x53, 0x65, 0x6e, 0x74, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x42, 0x0a,
-	0x5a, 0x08, 0x2f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x33,
+	0x65, 0x52, 0x0b, 0x53, 0x65, 0x6e, 0x74, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x24,
+	0x0a, 0x08, 0x53, 0x68, 0x75, 0x74, 0x64, 0x6f, 0x77, 0x6e, 0x12, 0x18, 0x0a, 0x07, 0x4d, 0x65,
+	0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x4d, 0x65, 0x73,
+	0x73, 0x61, 0x67, 0x65, 0x22, 0x2c, 0x0a, 0x10, 0x53, 0x68, 0x75, 0x74, 0x64, 0x6f, 0x77, 0x6e,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x4d, 0x65, 0x73, 0x73,
+	0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x4d, 0x65, 0x73, 0x73, 0x61,
+	0x67, 0x65, 0x42, 0x0a, 0x5a, 0x08, 0x2f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1845,7 +1940,7 @@ func file_messages_protos_proto_rawDescGZIP() []byte {
 	return file_messages_protos_proto_rawDescData
 }
 
-var file_messages_protos_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_messages_protos_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_messages_protos_proto_goTypes = []any{
 	(*Connect)(nil),                   // 0: messages.Connect
 	(*Connected)(nil),                 // 1: messages.Connected
@@ -1874,15 +1969,17 @@ var file_messages_protos_proto_goTypes = []any{
 	(*GetDirectMessagesResponse)(nil), // 24: messages.GetDirectMessagesResponse
 	(*SendDirectMessageRequest)(nil),  // 25: messages.SendDirectMessageRequest
 	(*SendDirectMessageResponse)(nil), // 26: messages.SendDirectMessageResponse
-	(*timestamppb.Timestamp)(nil),     // 27: google.protobuf.Timestamp
+	(*Shutdown)(nil),                  // 27: messages.Shutdown
+	(*ShutdownResponse)(nil),          // 28: messages.ShutdownResponse
+	(*timestamppb.Timestamp)(nil),     // 29: google.protobuf.Timestamp
 }
 var file_messages_protos_proto_depIdxs = []int32{
 	5,  // 0: messages.CreateSubredditResponse.Subreddit:type_name -> messages.Subreddit
-	27, // 1: messages.Post.CreatedAt:type_name -> google.protobuf.Timestamp
+	29, // 1: messages.Post.CreatedAt:type_name -> google.protobuf.Timestamp
 	12, // 2: messages.CreatePostResponse.Post:type_name -> messages.Post
-	27, // 3: messages.Comment.CommentedAt:type_name -> google.protobuf.Timestamp
+	29, // 3: messages.Comment.CommentedAt:type_name -> google.protobuf.Timestamp
 	12, // 4: messages.GetPostFeedResponse.Posts:type_name -> messages.Post
-	27, // 5: messages.DirectMessage.Timestamp:type_name -> google.protobuf.Timestamp
+	29, // 5: messages.DirectMessage.Timestamp:type_name -> google.protobuf.Timestamp
 	22, // 6: messages.GetDirectMessagesResponse.Messages:type_name -> messages.DirectMessage
 	22, // 7: messages.SendDirectMessageResponse.SentMessage:type_name -> messages.DirectMessage
 	8,  // [8:8] is the sub-list for method output_type
@@ -1903,7 +2000,7 @@ func file_messages_protos_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_messages_protos_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   27,
+			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

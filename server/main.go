@@ -1,17 +1,19 @@
 package main
 
 import (
-    "fmt"
-    "RedditClone/message"
-    "github.com/asynkron/protoactor-go/actor"
-	"github.com/asynkron/protoactor-go/remote"
-	"google.golang.org/protobuf/types/known/timestamppb"
-    "time"
-	"strconv"
+	"RedditClone/message"
+	"fmt"
 	"sort"
+	"strconv"
+	"time"
+	"github.com/asynkron/protoactor-go/actor"
+	"github.com/asynkron/protoactor-go/remote"
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/known/timestamppb"
+    "os"
 )
 
+// structure for the reddit engine actor (server)
 type RedditEngine struct{
 	users map[string]*message.User
 	subreddits map[string]*message.Subreddit
@@ -30,6 +32,8 @@ func NewServer() *RedditEngine {
     }
 }
 
+// behaviors of the reddit engine. engine will receive the requests
+// from the simulator and processes them
 func (s *RedditEngine)  Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
 	case *message.Connect:
@@ -78,20 +82,31 @@ func (s *RedditEngine)  Receive(context actor.Context) {
         fmt.Printf("Get Send Direct messages request received from client to send a message from %v to %v with message %v \n", msg.SenderUsername, msg.ReceiverUsername, msg.Content)
         response := s.sendDirectMessage(msg)
         context.Respond(response)
+    case *message.Shutdown:
+        fmt.Printf("Recevied shutdown request : %v \n", msg.Message)
+        response := &message.ShutdownResponse{
+            Message: "Server terminated. Client can terminate",
+        }
+		context.Respond(response)
+        os.Exit(1)
 	}
 }
 
+// handles account registration for an user
 func (s *RedditEngine) registerAccount(username string, password string) *message.RegisterAccountResponse{
+    // if the password is less than 8 characters, send an invalid password response
 	if len(password) < 8 {
 		return &message.RegisterAccountResponse {
 			Message: "Invalid password. Password must be at least 8 characters long",
 		}
 	}
+    // check if the username already exists, if yes, send the username already exists response
 	if _, userExists := s.users[username] ; userExists {
 		return &message.RegisterAccountResponse {
 			Message: "Username already exists",
 		}
 	}
+    // if the password > 8 characters and username is unique, add it to the users map
 	user := &message.User{
         Username: username,
         Password: password,
@@ -106,7 +121,13 @@ func (s *RedditEngine) registerAccount(username string, password string) *messag
 	}
 }
 
+// handles subreddit creation
 func (s *RedditEngine) createSubreddit(name string, description string, username string) *message.CreateSubredditResponse{
+    // if the subreddit to be created already exists, send the message.
+    // process subreddit creation iff the subreddit is unique and is not available before and
+    // the user should already be registered
+    // create a subreddit with a given name, what it is about, who created it and list of subscribers (null initially)
+
 	if _, subredditExists := s.subreddits[name]; subredditExists {
         return &message.CreateSubredditResponse{
             Message: "Subreddit already exists",
@@ -130,7 +151,11 @@ func (s *RedditEngine) createSubreddit(name string, description string, username
     }
 }
 
+// handles a user joining a subreddit
 func (s *RedditEngine) joinSubreddit(username string, subredditName string) *message.JoinSubredditResponse {
+    // in order to join a subreddit, the subreddit and the user should already be avaiable in the subreddits and user lists
+    // if yes, then check if user has already joined. if not allow the user to join and add the user to the subscriber list
+
     user, userExists := s.users[username]
     if !userExists {
         return &message.JoinSubredditResponse{
@@ -159,7 +184,11 @@ func (s *RedditEngine) joinSubreddit(username string, subredditName string) *mes
     }
 }
 
+// handles a user leaving a subreddit
 func (s *RedditEngine) leaveSubreddit(username string, subredditName string) *message.LeaveSubredditResponse {
+    // in order to join a subreddit, the subreddit and the user should already be avaiable in the subreddits and user lists
+    // if yes, then check if user has subscribed. if yes allow the user to leave and remove the user from the subscriber list
+
     user, userExists := s.users[username]
     if !userExists {
         return &message.LeaveSubredditResponse{
@@ -198,7 +227,11 @@ func (s *RedditEngine) leaveSubreddit(username string, subredditName string) *me
     }
 }
 
+// handles post creation on a subreddit
 func (s *RedditEngine) createSubredditPost(author string, subredditName string, subject string, content string) *message.CreatePostResponse {
+
+    // checks if the user and subreddit is available. if yes, allows to create a post on the subreddit with the details sent such as
+    // subreddit name, who created the post, upvotes and downvotes (0 initially), subject and content, comments, timestamp
 	_, userExists := s.users[author]
     if !userExists {
         return &message.CreatePostResponse{
@@ -233,6 +266,7 @@ func (s *RedditEngine) createSubredditPost(author string, subredditName string, 
 	}
 }
 
+// handles commenting on a post
 func (s *RedditEngine) createCommentOnPost(msg *message.CreateCommentRequest) *message.CreateCommentResponse {
 	_, userExists := s.users[msg.Author]
     if !userExists {
@@ -260,6 +294,21 @@ func (s *RedditEngine) createCommentOnPost(msg *message.CreateCommentRequest) *m
 			}
 			s.comments[commentId] = newComment
 
+            // handles nesting of comments
+            if msg.ParentComment != "" {
+                parentComment, exists := s.comments[msg.ParentComment]
+                if exists {
+                    parentComment.Children = append(parentComment.Children, commentId)
+                } else {
+                    return &message.CreateCommentResponse{
+                        Message: "Parent comment not found",
+                    }
+                }
+            } else {
+                // If it's a top-level comment, add it to the post's comment list
+                s.posts[msg.Post].Comments = append(s.posts[msg.Post].Comments, commentId)
+            }
+
 			return &message.CreateCommentResponse{
 				Message: "Commented "+ "on post " + msg.Post +  "successfully",
 			}
@@ -267,12 +316,14 @@ func (s *RedditEngine) createCommentOnPost(msg *message.CreateCommentRequest) *m
 	}
 }
 
+// handles calculation of karma for an user
 func (s *RedditEngine) computeKarma(id string, voteFlag bool) *message.ComputeKarmaResponse {
 
+    // karma for a user can be calculated depening upon the upvotes and downvotes on a post/comment
 	var found bool
 	var entity interface{}
 
-
+    // checks if the post/comment is present
 	if entity, found = s.posts[id]; !found {
         if entity, found = s.comments[id]; !found {
             return &message.ComputeKarmaResponse{Message: "Post/comment not found"}
@@ -283,6 +334,7 @@ func (s *RedditEngine) computeKarma(id string, voteFlag bool) *message.ComputeKa
 	var author string
 	var karmaPts int32
 
+    // gets the total number of upvotes and downvotes
 	switch v := entity.(type) {
 		case *message.Post:
 			upvote = &v.Upvotecnt
@@ -294,12 +346,14 @@ func (s *RedditEngine) computeKarma(id string, voteFlag bool) *message.ComputeKa
 			author = v.Author
     }
 
+    // if the simulator wants to upvote a post/comment, increment the upvote count. else increment the downvote count
 	if voteFlag {
         *upvote++
     } else {
         *downvote++
     }
 
+    // update user's karma points
     if voteFlag {
         s.users[author].Karma++
     } else {
@@ -312,6 +366,7 @@ func (s *RedditEngine) computeKarma(id string, voteFlag bool) *message.ComputeKa
 
 }
 
+// gets the post feed for a user depending upon the limit count received
 func (s *RedditEngine) getPostFeed(username string, limit int32) *message.GetPostFeedResponse {
 	user, exists := s.users[username]
     if !exists {
@@ -341,11 +396,14 @@ func (s *RedditEngine) getPostFeed(username string, limit int32) *message.GetPos
     return &message.GetPostFeedResponse{Posts: allPosts}
 }
 
+
+// handles the list of messages sent directly to an user
 func (s *RedditEngine) getDirectMessages(req *message.GetDirectMessagesRequest) *message.GetDirectMessagesResponse {
     messages := s.directMessages[req.Username]
     return &message.GetDirectMessagesResponse{Messages: messages}
 }
 
+// handles replying to a direct message
 func (s *RedditEngine) sendDirectMessage(msg *message.SendDirectMessageRequest) *message.SendDirectMessageResponse {
     messageID := uuid.New().String()
     newMessage := &message.DirectMessage{
@@ -355,19 +413,20 @@ func (s *RedditEngine) sendDirectMessage(msg *message.SendDirectMessageRequest) 
         Content:           msg.Content,
         Timestamp:         timestamppb.New(time.Now()),
     }
+    // receiver responds to the sender's messsage
     s.directMessages[msg.ReceiverUsername] = append(s.directMessages[msg.ReceiverUsername], newMessage)
     return &message.SendDirectMessageResponse{
-        Message:     "Direct message sent successfully",
+        Message:     msg.ReceiverUsername + " says Hello. It's going good",
         SentMessage: newMessage, 
     }
 }
 
 func main() {
-	system := actor.NewActorSystem()
-	config := remote.Configure("127.0.0.1", 8147)
+	system := actor.NewActorSystem() // creates a new actor system and manages it
+	config := remote.Configure("127.0.0.1", 8208) // configure remote communication i.e. here we will be connecting to the ip 127.0.0.1 on port 8207
 	remoter := remote.NewRemote(system, config)
-	remoter.Start()
-
+	remoter.Start() // initiates remote communication
+    // spawn the reddit engine actor
 	props := actor.PropsFromProducer(func() actor.Actor { return NewServer() })
 	_, _ = system.Root.SpawnNamed(props, "redditclone")
 

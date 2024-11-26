@@ -3,15 +3,19 @@ package messages;
 option go_package = "/message";
 import "google/protobuf/timestamp.proto";
 
+
+// this is the message the simulator actor will send to the engine actor to establish a connection
 message Connect {
     string Sender = 1;
     string Message = 2;
 }
 
+// this is the message the engine actor will respond to the simulator actor on successful connection attempt
 message Connected {
     string Message = 1;
 }
 
+// structure for user and simulator will include the below details to register a user
 message User {
     string Username = 1;
     string Password = 2;
@@ -19,15 +23,18 @@ message User {
     repeated string SubscribedSubreddits = 4;
 }
 
+// this is the message the simulator actor will send to the engine actor to register an account
 message RegisterAccountRequest {
     string Username = 1;
     string Password = 2;
 }
 
+// this is the message the engine actor will respond to the simulator actor on for user registration
 message RegisterAccountResponse {
     string Message = 1;
 }
 
+// structure for subreddit and simulator will include the below details to create a subreddit
 message Subreddit {
     string TopicName = 1;
     string Description = 2;
@@ -36,35 +43,42 @@ message Subreddit {
     repeated string PostIds = 5; 
 }
 
+// this is the message the simulator actor will send to the engine actor to create a subreddit
 message CreateSubredditRequest {
     string Name = 1;
     string Description = 2;
     string Username = 3;
 }
 
+// this is the message the engine actor will respond to the simulator actor after creation of a subreddit
 message CreateSubredditResponse {
     string Message = 1;
     Subreddit Subreddit = 2;
 }
 
+// this is the message the simulator actor will send to the engine actor to join a subreddit
 message JoinSubredditRequest {
     string Username = 1;
     string SubredditName = 2;
 }
 
+// this is the message the engine actor will respond to the simulator actor after joining of a subreddit
 message JoinSubredditResponse {
     string Message = 1;
 }
 
+// this is the message the simulator actor will send to the engine actor to leave a subreddit
 message LeaveSubredditRequest {
     string Username = 1;
     string SubredditName = 2;
 }
 
+// this is the message the engine actor will respond to the simulator actor after leaving of a subreddit
 message LeaveSubredditResponse {
     string Message = 1;
 }
 
+// structure for subreddit and simulator will include the below details to create a post on a subreddit
 message Post {
     string Subreddit = 1;
     string Author = 2;
@@ -77,6 +91,7 @@ message Post {
     string PostId = 9;
 }
 
+// this is the message the simulator actor will send to the engine actor to create a post on a subreddit
 message CreatePostRequest {
     string SubredditName = 1;
     string Author = 2;
@@ -84,11 +99,13 @@ message CreatePostRequest {
     string Content = 4;
 }
 
+// this is the message the engine actor will respond to the simulator actor after creating a post on a subreddit
 message CreatePostResponse {
     string Message = 1;
     Post Post = 2;
 }
 
+// structure for comment on a subreddit and simulator will include the below details to create a comment on a post
 message Comment {
     string Subreddit = 1;
     string Author = 2;
@@ -102,6 +119,7 @@ message Comment {
     string CommentId = 10;
 }
 
+// this is the message the simulator actor will send to the engine actor to create a comment on a subreddit post
 message CreateCommentRequest {
     string Post = 1;
     string Author = 2;
@@ -110,30 +128,35 @@ message CreateCommentRequest {
     string ChildComment = 5;
 }
 
+// this is the message the engine actor will respond to the simulator actor after commenting a post
 message CreateCommentResponse {
     string Message = 1;
 }
 
+// to compute karma and takes whether a post or a comment has been upvoted or not 
 message ComputeKarmaRequest {
     string Id = 1;
-    bool IsUpvote = 2;
+    bool IsUpvote = 2; // true = upvote; false = downvote
 }
 
+// this is the message the simulator actor will send to the engine actor to calculate karma for a particular user
 message ComputeKarmaResponse {
     string User = 1;
     string Message = 2;
     int32 Karma = 3;
 }
-
+// request for post feed for a user
 message GetPostFeedRequest {
     string Username = 1;
     int32 Limit = 2;
 }
 
+// returns the list of posts
 message GetPostFeedResponse {
     repeated Post Posts = 1;
 }
 
+// structure to send messages between users
 message DirectMessage {
     string ID = 1;
     string SenderUsername = 2;
@@ -142,21 +165,35 @@ message DirectMessage {
     google.protobuf.Timestamp Timestamp = 5;
 }
 
+// this is the message the simulator actor will send to the engine actor to list of direct messages
 message GetDirectMessagesRequest {
     string Username = 1;
 }
 
+// responds with the list of messages
 message GetDirectMessagesResponse {
     repeated DirectMessage Messages = 1;
 }
 
+// this is the message the simulator actor will send to the engine actor to send a direct message to a user
 message SendDirectMessageRequest {
     string SenderUsername = 1;
     string ReceiverUsername = 2;
     string Content = 3;
 }
 
+// this is the message the engine actor will respond to the simulator actor with a direct reply to a user
 message SendDirectMessageResponse {
     string Message = 1;
     DirectMessage SentMessage = 2;
+}
+
+// initate shutdown from client to server
+message Shutdown {
+    string Message = 1;
+}
+
+// reponse sent by server and then terminates
+message ShutdownResponse {
+    string Message = 1;
 }
